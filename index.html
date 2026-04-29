@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLFFY Mobile HW: Wasted Years</title>
+    
+    <!-- Fonts: Sci-Fi, Cyberpunk & Terminal -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#050b14',    /* Deep Space Black */
+                            panel: '#0f172a',   /* Slate 900 Metal */
+                            screen: '#020617',  /* CRT Screen bg */
+                            neon: '#39ff14',    /* Matrix Green */
+                            blue: '#00f3ff',    /* Hologram Blue */
+                            gold: '#ffd700',    /* Golden Years */
+                            red: '#ff003c',     /* Alert Red */
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        exo: ['"Exo 2"', 'sans-serif'],
+                        mono: ['"Share Tech Mono"', 'monospace'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'neon-green': '0 0 10px rgba(57,255,20,0.5), inset 0 0 10px rgba(57,255,20,0.2)',
+                        'neon-blue': '0 0 10px rgba(0,243,255,0.5), inset 0 0 10px rgba(0,243,255,0.2)',
+                        'neon-gold': '0 0 15px rgba(255,215,0,0.4)',
+                        'panel': 'inset 0 2px 10px rgba(255,255,255,0.05), 0 10px 30px rgba(0,0,0,0.8)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base & Resets */
+        body {
+            background-color: #000;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: #fff;
+            font-family: 'Exo 2', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        /* Mobile Wrapper Simulator */
+        .mobile-wrapper {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 100vh;
+            background-color: #050b14;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        @media (min-width: 640px) {
+            .mobile-wrapper {
+                height: 90vh;
+                border-radius: 40px;
+                border: 8px solid #0f172a;
+                box-shadow: 0 25px 50px -12px rgba(0, 243, 255, 0.3), inset 0 0 0 4px #020617;
+            }
+        }
+
+        /* Custom Scrollbar for the sci-fi feel */
+        .mobile-wrapper::-webkit-scrollbar { width: 6px; }
+        .mobile-wrapper::-webkit-scrollbar-track { background: #020617; }
+        .mobile-wrapper::-webkit-scrollbar-thumb { background: #00f3ff; border-radius: 10px; }
+
+        /* CRT Effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        /* Card styles */
+        .question-card {
+            background-color: #0f172a;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .question-card.active {
+            border-color: #39ff14;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+        }
+
+        .option-btn {
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .option-btn:hover:not(:disabled) {
+            background: rgba(0, 243, 255, 0.1);
+            border-left-color: #00f3ff;
+        }
+        .option-btn.correct { background-color: #39ff14 !important; color: #020617 !important; border-left-color: #020617 !important; font-weight: bold; box-shadow: 0 0 10px rgba(57,255,20,0.5);}
+        .option-btn.wrong { background-color: #ff003c !important; color: white !important; border-left-color: #020617 !important; font-weight: bold; box-shadow: 0 0 10px rgba(255,0,60,0.5);}
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: #ff003c !important;}
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(3px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+            40%, 60% { transform: translate3d(5px, 0, 0); }
+        }
+
+        .confetti { position: absolute; width: 6px; height: 16px; opacity: 0; z-index: 100; box-shadow: 0 0 8px currentColor;}
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        .progress-point { transition: all 0.3s; }
+        .progress-point.filled { background-color: #39ff14; box-shadow: 0 0 8px #39ff14; border-color: #39ff14; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-wrapper" id="app-container">
+        
+        <!-- CRT Overlay purely aesthetic -->
+        <div class="crt-overlay"></div>
+
+        <!-- Sticky Header with Progress -->
+        <header class="sticky top-0 z-50 bg-[#050b14]/95 backdrop-blur-md border-b border-cyber-blue/30 px-6 pt-5 pb-3 shadow-neon-blue">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="font-rajdhani font-black text-cyber-blue tracking-widest text-xl uppercase">WOLFFY <span class="text-white">LINK</span></h1>
+                    <p class="font-mono text-[10px] text-cyber-neon uppercase tracking-widest">DATA_SEC_02: HOMEWORK</p>
+                </div>
+                <div class="text-right bg-[#0f172a] px-3 py-1 rounded border border-cyber-blue/50">
+                    <span id="score-counter" class="font-mono text-xs font-bold text-cyber-gold">DECODED: 0/15</span>
+                </div>
+            </div>
+            <!-- Visual Progress Dots -->
+            <div class="flex justify-between gap-1 mb-1" id="progress-container">
+                <!-- Dots injected via JS -->
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-4 pb-32 space-y-6">
+            
+            <!-- Intro Data Disc -->
+            <div class="bg-[#0f172a] p-5 rounded-xl shadow-panel border border-cyber-blue relative overflow-hidden flex flex-col items-center text-center">
+                <div class="w-24 h-24 rounded-full border-4 border-cyber-neon border-t-transparent animate-spin mb-4 shadow-neon-green flex items-center justify-center">
+                    <div class="w-20 h-20 rounded-full overflow-hidden animate-spin" style="animation-direction: reverse; animation-duration: 4s;">
+                        <img src="https://i.scdn.co/image/ab67616d0000b273ff77b94aa527101b8ef75364" class="w-full h-full object-cover opacity-80">
+                    </div>
+                </div>
+
+                <div class="w-full bg-[#020617] mt-2 p-3 text-center border border-gray-800 rounded">
+                    <h2 class="font-rajdhani font-black text-white text-2xl uppercase leading-none tracking-wide">Knowledge Eval</h2>
+                    <p class="font-mono text-xs font-bold text-cyber-blue mt-1">Pres. Perfect Cont. & Lexicon</p>
+                </div>
+            </div>
+
+            <!-- Quiz Questions Container -->
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here -->
+            </div>
+
+        </main>
+
+        <!-- Fixed Submit Button Footer -->
+        <div class="sticky bottom-0 left-0 w-full bg-gradient-to-t from-[#020617] via-[#050b14] to-transparent pt-12 pb-6 px-6 z-50">
+            <button id="submit-btn" onclick="checkAllAndSubmit()" class="w-full bg-cyber-blue text-[#020617] font-rajdhani font-black text-2xl tracking-wider uppercase py-4 rounded-lg shadow-neon-blue transition-all active:scale-95 flex items-center justify-center gap-3 border border-transparent hover:bg-[#020617] hover:text-cyber-blue hover:border-cyber-blue">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                SYNC DATA
+            </button>
+        </div>
+
+        <!-- Success Overlay -->
+        <div id="success-overlay" class="fixed inset-0 bg-[#020617]/95 z-[100] flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 hidden">
+            <div class="w-32 h-32 bg-[#0f172a] border-4 border-cyber-gold rounded-full flex items-center justify-center mb-6 shadow-neon-gold transform scale-50 transition-transform duration-500" id="success-badge">
+                <span class="text-6xl text-cyber-gold">🤘</span>
+            </div>
+            <h1 class="font-rajdhani font-black text-5xl text-white mb-2 text-center uppercase tracking-tighter">MISSION ACCOMPLISHED</h1>
+            <div class="bg-[#0f172a] border border-cyber-blue px-6 py-2 rounded mb-6 mt-4">
+                <div class="font-mono text-cyber-blue text-2xl font-bold" id="final-score">SCORE: 15/15</div>
+            </div>
+            <p class="font-exo text-gray-400 text-sm mb-10 text-center max-w-[280px]">Your temporal data has been synced to the main server. The teacher is proud.</p>
+            <button onclick="location.reload()" class="bg-transparent border-2 border-cyber-neon text-cyber-neon font-mono font-bold px-10 py-4 rounded uppercase text-sm tracking-widest hover:bg-cyber-neon hover:text-black transition-colors shadow-neon-green">REBOOT CHALLENGE</button>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const quizData = [
+            { q: "1. Which sentence uses the Present Perfect Continuous?", a: ["I searched everywhere.", "I have searched everywhere.", "I have been searching everywhere."], c: 2 },
+            { q: "2. 'She ______ studying English for 3 years.'", a: ["has been", "have been", "is"], c: 0 },
+            { q: "3. 'They ______ playing video games all afternoon.'", a: ["has been", "were", "have been"], c: 2 },
+            { q: "4. What does 'wasted years' mean?", a: ["Time spent with no purpose.", "A very long vacation.", "Searching for old friends."], c: 0 },
+            { q: "5. The 'golden years' refers to...", a: ["The 1980s.", "The best, most successful time.", "A gold mine in the coast."], c: 1 },
+            { q: "6. 'I have been ______ for you.'", a: ["searched", "search", "searching"], c: 2 },
+            { q: "7. '______ you been working hard recently?'", a: ["Have", "Has", "Are"], c: 0 },
+            { q: "8. 'He ______ been sleeping well lately.'", a: ["hasn't", "haven't", "isn't"], c: 0 },
+            { q: "9. What is the structure of Present Perfect Continuous?", a: ["Have/Has + V3", "Am/Is/Are + V-ing", "Have/Has + been + V-ing"], c: 2 },
+            { q: "10. 'We ______ living here since 2010.'", a: ["are", "have been", "were"], c: 1 },
+            { q: "11. 'Stranger to myself' means:", a: ["Meeting someone new.", "Moving to a new city.", "Feeling you don't recognize yourself."], c: 2 },
+            { q: "12. 'It ______ raining all day.'", a: ["has been", "have been", "is"], c: 0 },
+            { q: "13. Which auxiliary is used for 'I / You / We / They' in Present Perfect Cont.?", a: ["had", "have", "has"], c: 1 },
+            { q: "14. '______ long have you been waiting?'", a: ["When", "What", "How"], c: 2 },
+            { q: "15. The song 'Wasted Years' tells us to:", a: ["Live in the present.", "Look for old friends.", "Keep traveling the world."], c: 0 }
+        ];
+
+        let userAnswers = Array(15).fill(null);
+        let solvedCount = 0;
+
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            const progress = document.getElementById('progress-container');
+            
+            quizData.forEach((item, idx) => {
+                // Create Progress Dot
+                const dot = document.createElement('div');
+                dot.className = `h-2 flex-1 bg-[#020617] border border-gray-800 rounded-full progress-point dot-${idx}`;
+                progress.appendChild(dot);
+
+                // Create Card
+                const card = document.createElement('div');
+                card.className = `question-card rounded-lg p-6 shadow-panel q-card-${idx}`;
+                card.innerHTML = `
+                    <p class="font-exo text-xl font-bold mb-5 tracking-wide text-white leading-snug">${item.q}</p>
+                    <div class="grid grid-cols-1 gap-3 font-mono font-bold text-sm">
+                        ${item.a.map((opt, oIdx) => `
+                            <button class="option-btn bg-[#020617] border border-gray-800 text-gray-300 py-4 px-4 rounded text-left flex items-center justify-between group btn-${idx}-${oIdx}" onclick="answer(${idx}, ${oIdx})">
+                                <span>${opt}</span>
+                                <div class="w-4 h-4 rounded border border-gray-600 group-hover:border-cyber-blue transition-colors"></div>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function answer(qIdx, oIdx) {
+            if (userAnswers[qIdx] !== null) return; // Locked once answered
+
+            const correct = quizData[qIdx].c;
+            const btn = document.querySelector(`.btn-${qIdx}-${oIdx}`);
+            const card = document.querySelector(`.q-card-${qIdx}`);
+            const dot = document.querySelector(`.dot-${qIdx}`);
+            const allBtnsInCard = card.querySelectorAll('.option-btn');
+
+            // Disable all buttons in this card
+            allBtnsInCard.forEach(b => b.disabled = true);
+
+            if (oIdx === correct) {
+                // Correct
+                btn.classList.add('correct');
+                btn.classList.remove('text-gray-300', 'bg-[#020617]');
+                btn.querySelector('div').innerHTML = '✓';
+                btn.querySelector('div').className = 'w-4 h-4 flex items-center justify-center text-[10px] border-none text-[#020617]';
+                userAnswers[qIdx] = true;
+            } else {
+                // Wrong
+                btn.classList.add('wrong');
+                btn.classList.remove('text-gray-300', 'bg-[#020617]');
+                btn.querySelector('div').innerHTML = '✕';
+                btn.querySelector('div').className = 'w-4 h-4 flex items-center justify-center text-[10px] border-none text-white';
+                
+                // Highlight correct one too
+                const correctBtn = document.querySelector(`.btn-${qIdx}-${correct}`);
+                correctBtn.classList.add('correct');
+                correctBtn.classList.remove('text-gray-300', 'bg-[#020617]');
+                correctBtn.querySelector('div').innerHTML = '✓';
+                correctBtn.querySelector('div').className = 'w-4 h-4 flex items-center justify-center text-[10px] border-none text-[#020617]';
+                
+                card.classList.add('shake');
+                userAnswers[qIdx] = false;
+            }
+
+            dot.classList.add('filled');
+            solvedCount++;
+            updateHeader();
+        }
+
+        function updateHeader() {
+            const scoreLabel = document.getElementById('score-counter');
+            scoreLabel.innerText = `DECODED: ${solvedCount}/15`;
+            
+            // Visual feedback on header update
+            scoreLabel.classList.add('text-cyber-neon');
+            scoreLabel.classList.remove('text-cyber-gold');
+            setTimeout(() => {
+                scoreLabel.classList.remove('text-cyber-neon');
+                scoreLabel.classList.add('text-cyber-gold');
+            }, 300);
+        }
+
+        function checkAllAndSubmit() {
+            if (solvedCount < 15) {
+                const btn = document.getElementById('submit-btn');
+                btn.classList.add('shake', 'bg-cyber-red', 'text-white');
+                btn.classList.remove('bg-cyber-blue', 'text-[#020617]');
+                btn.innerHTML = "INCOMPLETE DATA";
+                setTimeout(() => {
+                    btn.classList.remove('shake', 'bg-cyber-red', 'text-white');
+                    btn.classList.add('bg-cyber-blue', 'text-[#020617]');
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> SYNC DATA`;
+                }, 1500);
+                return;
+            }
+
+            // Calculate final score
+            const finalCorrect = userAnswers.filter(a => a === true).length;
+            const overlay = document.getElementById('success-overlay');
+            const badge = document.getElementById('success-badge');
+            
+            document.getElementById('final-score').innerText = `SCORE: ${finalCorrect} / 15`;
+            
+            overlay.style.display = 'flex';
+            void overlay.offsetWidth;
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                badge.classList.remove('scale-50');
+                badge.classList.add('scale-100');
+                shootConfetti();
+            }, 100);
+        }
+
+        function shootConfetti() {
+            const container = document.getElementById('app-container');
+            const colors = ['#39ff14', '#00f3ff', '#ffd700'];
+            for(let i=0; i<80; i++) {
+                let c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.color = colors[Math.floor(Math.random()*colors.length)];
+                c.style.backgroundColor = c.style.color;
+                c.style.left = Math.random() * 100 + '%';
+                c.style.animation = `fall ${Math.random()*2+2}s linear forwards`;
+                c.style.animationDelay = Math.random()*0.5+'s';
+                container.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
